@@ -99,7 +99,12 @@ class FunDocument(QtGui.QTextDocument):
         lastStyle=None
         while True:
             text=unicode(bl.text())
-            style=format[bl.userData().data or 'normal']
+            d=bl.userData()
+            if d: 
+                d=d.data
+            else:
+                d='normal'
+            style=styles[d]
             if style=='heading1':
                 text=text.strip()
                 out.append('')
@@ -190,5 +195,8 @@ if __name__ == "__main__":
         else:
             w.setPlainText(open(sys.argv[1]).read())
         bs.rehighlight()
-
+    adjustStylesCombo()
+    window.activateWindow()
+    window.setFocus()
+    w.setFocus()
     sys.exit(app.exec_())
