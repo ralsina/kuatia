@@ -146,10 +146,24 @@ if __name__ == "__main__":
     for s in styles.keys():
         stylesCombo.addItem(s)
 
+    bbar=QtGui.QHBoxLayout()
+    b1=QtGui.QPushButton("1")
+    b2=QtGui.QPushButton("2")
+    b3=QtGui.QPushButton("3")
+    b4=QtGui.QPushButton("4")
+    b5=QtGui.QPushButton("5")
+    b6=QtGui.QPushButton("6")
+    bbar.addWidget(b1)
+    bbar.addWidget(b2)
+    bbar.addWidget(b3)
+    bbar.addWidget(b4)
+    bbar.addWidget(b5)
+    bbar.addWidget(b6)
 
     layout=QtGui.QVBoxLayout()
     layout.addWidget(process)
     layout.addWidget(stylesCombo)
+    layout.addLayout(bbar)
     layout.addWidget(w)
 
     window.setLayout(layout)
