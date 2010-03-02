@@ -3,47 +3,41 @@ import sys, os
 
 from PyQt4 import QtCore, QtGui
 
-styleList= [
-    'heading1',
-    'heading2',
-    'code',
-    'normal',
-    ]
-
-formats={
-    'heading1': {
+from pythonutils.odict import OrderedDict
+styles=OrderedDict([
+    ('heading1', {
         'bold': True,
         'italic': False,
         'alignment': 'center',
         'font': 'White Rabbit',
         'size': 18,
         'nextStyle': 'normal',
-        },
-    'heading2': {
+        }),
+    ('heading2', {
         'bold': True,
         'italic': True,
         'alignment': 'center',
         'font': 'Eurofurence',
         'size': 16,
         'nextStyle': 'normal',
-        },
-    'code': {
+        }),
+    ('code', {
         'bold': False,
         'italic': False,
         'alignment': 'left',
         'font': 'Courier',
         'size': 10,
         'nextStyle': 'code',
-        },    
-    'normal': {
+        }),    
+    ('normal', {
         'bold': False,
         'italic': False,
         'alignment': 'left',
         'font': 'Helvetica',
         'size': 10,
         'nextStyle': 'normal',
-        },    
-}
+        })])
+
 
 alignments = {
     'center': QtCore.Qt.AlignCenter,
@@ -53,30 +47,34 @@ alignments = {
 
 bfDict={}
 
-for format in formats:
+for format in styles:
     bfDict[format]=QtGui.QTextBlockFormat()
-    bfDict[format].setAlignment(alignments[formats[format]['alignment']])
-    
+    bfDict[format].setAlignment(alignments[styles[format]['alignment']])
+
+
+class StyleData(QtGui.QTextBlockUserData):
+    def __init__(self, data='normal'):
+        self.data=data
+        QtGui.QTextBlockUserData.__init__(self)
 
 class blockStyler(QtGui.QSyntaxHighlighter):
     def highlightBlock(self, text):
         text=unicode(text)
-        block=self.currentBlock()
-        st=block.userState()
-        format=formats['normal']
         stName='normal'
-        if st == -1: # No style set
+        format=styles['normal']
+        block=self.currentBlock()
+        st=block.userData()
+        if not st: # No style set
             pb=block.previous()
             if pb.isValid():
                 # Get previous style
-                st2=pb.userState()
-                pname=styleList[st2]
-                stName=formats[pname]['nextStyle']
-                format=formats[stName]
-                block.setUserState(styleList.index(stName))
+                prevStyle=pb.userData().data
+                stName=styles[prevStyle]['nextStyle']
+                format=styles[stName]
+                block.setUserData(StyleData(stName))
         else:
-            stName=styleList[st]
-            format=formats[stName]
+            stName=st.data
+            format=styles[stName]
         print text,'=>', stName
 
         # Creat text format, again, should be pre-made
@@ -101,7 +99,7 @@ class FunDocument(QtGui.QTextDocument):
         lastStyle=None
         while True:
             text=unicode(bl.text())
-            style=styleList[bl.userState()]
+            style=format[bl.userData().data or 'normal']
             if style=='heading1':
                 text=text.strip()
                 out.append('')
@@ -139,14 +137,14 @@ if __name__ == "__main__":
     w.d=FunDocument()
     w.setDocument(w.d)
     process=QtGui.QPushButton("Do Something")
-    styles=QtGui.QComboBox()
-    for s in styleList:
-        styles.addItem(s)
+    stylesCombo=QtGui.QComboBox()
+    for s in styles.keys():
+        stylesCombo.addItem(s)
 
 
     layout=QtGui.QVBoxLayout()
     layout.addWidget(process)
-    layout.addWidget(styles)
+    layout.addWidget(stylesCombo)
     layout.addWidget(w)
 
     window.setLayout(layout)
@@ -155,15 +153,16 @@ if __name__ == "__main__":
 
     def changeStyle(idx):
         block=w.textCursor().block()
-        block.setUserState(idx)
+        s=StyleData(styles.keys()[idx])
+        block.setUserData(s)
         bs.rehighlightBlock(block)
         w.setFocus()
 
-    def adjustStyleCombo():
+    def adjustStylesCombo():
         block=w.textCursor().block()
         st=block.userState()
-        if st== -1: st=len(styleList)-1
-        styles.setCurrentIndex(st)
+        if st== -1: st=len(styles)-1
+        stylesCombo.setCurrentIndex(st)
         
     def doProcess():
         rst=w.document().toRst()
@@ -182,8 +181,8 @@ if __name__ == "__main__":
         open('savedfile.xx','w').write(unicode(w.toHtml()))
             
     process.clicked.connect(doProcess)
-    w.cursorPositionChanged.connect(adjustStyleCombo)
-    styles.activated.connect(changeStyle)
+    w.cursorPositionChanged.connect(adjustStylesCombo)
+    stylesCombo.activated.connect(changeStyle)
     
     if len(sys.argv) >1:
         if sys.argv[1].endswith('.xx'):
