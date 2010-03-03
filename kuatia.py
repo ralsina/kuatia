@@ -213,8 +213,8 @@ if __name__ == "__main__":
         os.system('arora outfile.html')
         
         open('savedfile.xx','w').write(unicode(w.toHtml()))
-            
-    def bulletIn():
+
+    def listIn(kind):
         cursor=w.textCursor()
         block=cursor.block()
         # Is it a bullet already?
@@ -222,29 +222,23 @@ if __name__ == "__main__":
         lformat=QtGui.QTextListFormat()
         bformat=cursor.blockFormat()
         if l:
-            print "is a bullet"
-        else:
-            lformat.setStyle(QtGui.QTextListFormat.ListDisc)
-            l=cursor.insertList(lformat)
-            l.add(block)
-            cursor.deletePreviousChar ()
+            # Only can indent if it has the same indent as the previous one
+            pl=block.previous().textList()
+            if not pl:
+                maxI=1
+            else:
+                maxI=pl.format().indent()+1
+            lformat=l.format()
+            lformat.setIndent(min(maxI,lformat.indent()+1))
+        lformat.setStyle(kind)
+        l=cursor.createList(lformat)
         w.setFocus()
 
+    def bulletIn():
+        listIn(QtGui.QTextListFormat.ListDisc)
+
     def numberIn():
-        cursor=w.textCursor()
-        block=cursor.block()
-        # Is it a bullet already?
-        l=block.textList()
-        lformat=QtGui.QTextListFormat()
-        bformat=cursor.blockFormat()
-        if l:
-            print "is a bullet"
-        else:
-            lformat.setStyle(QtGui.QTextListFormat.ListDecimal)
-            l=cursor.insertList(lformat)
-            l.add(block)
-            cursor.deletePreviousChar ()
-        w.setFocus()
+        listIn(QtGui.QTextListFormat.ListDecimal)
 
     def listOut():
         cursor=w.textCursor()
@@ -253,11 +247,37 @@ if __name__ == "__main__":
         l=block.textList()
         lformat=QtGui.QTextListFormat()
         bformat=cursor.blockFormat()
-        if l:
+        
+        def cleanBlockFormat(block):
             l.remove(block)
             cursor.setBlockFormat(QtGui.QTextBlockFormat())
             bs.updateBlockFormat(block)
             
+        
+        if l:
+            if l.format().indent()==1:
+                # No previous list to join
+                cleanBlockFormat(block)
+            else:
+                # This is a nested list, find the next outer
+                pb=block
+                while True:
+                    pb=pb.previous()
+                    if not pb:
+                        cleanBlockFormat(block)
+                        print 'Got to first block: break'
+                        break
+                    print 'Previous',pb.text()
+                    pl=pb.textList()
+                    if not pl:
+                        print "This shouldn't happen"
+                        cleanBlockFormat(block)
+                        break
+                    pi=pl.format().indent()
+                    print 'INDENT:',pi,l.format().indent()
+                    if pi==l.format().indent()-1:
+                        pl.add(block)
+                        break
         else:
             print "nothing to do"
         w.setFocus()
