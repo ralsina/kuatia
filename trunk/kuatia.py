@@ -107,6 +107,10 @@ class blockStyler(QtGui.QSyntaxHighlighter):
         cursor.setBlockFormat(current)
 
 class FunDocument(QtGui.QTextDocument):
+    
+    def indentText(self,text,indent):
+        return '\n'.join((' '*indent)+l for l in text.splitlines())
+    
     def toRst(self):
         out=[]
         doc=w.document()
@@ -114,6 +118,10 @@ class FunDocument(QtGui.QTextDocument):
         lastStyle=None
         while True:
             text=unicode(bl.text())
+            l=bl.textList()
+            if l: # This is in a list
+                text=self.indentText(text,5*l.format().indent())
+                text='*'+text[1:]
             d=bl.userData()
             if d: 
                 d=d.data
