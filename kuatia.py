@@ -120,8 +120,12 @@ class FunDocument(QtGui.QTextDocument):
             text=unicode(bl.text())
             l=bl.textList()
             if l: # This is in a list
-                text=self.indentText(text,5*l.format().indent())
-                text='*'+text[1:]
+                ind=5*l.format().indent()
+                print 'Indent level:',l.format().indent()
+                print '>%s<'%(' '*(ind-5)+'*    ')
+                text=self.indentText(text,ind)
+                text='\n'+(' '*(ind-5)+'*    '+(text[ind:]))
+                print 'TEXT:>%s<'%text
             d=bl.userData()
             if d: 
                 d=d.data
@@ -148,7 +152,8 @@ class FunDocument(QtGui.QTextDocument):
                 text='    '+text
                 out.append(text)
             else:
-                text=text.strip()
+                if not l:
+                    text=text.strip()
                 out.append(text)
             lastStyle=style
             bl=bl.next()
@@ -217,8 +222,6 @@ if __name__ == "__main__":
         f.close()
         os.system('rst2pdf outfile')
         os.system('okular outfile.pdf')
-        os.system('rst2html outfile outfile.html')
-        os.system('arora outfile.html')
         
         open('savedfile.xx','w').write(unicode(w.toHtml()))
 
