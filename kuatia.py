@@ -147,7 +147,7 @@ if __name__ == "__main__":
         stylesCombo.addItem(s)
 
     bbar=QtGui.QHBoxLayout()
-    b1=QtGui.QPushButton("1")
+    b1=QtGui.QPushButton("bullet >")
     b2=QtGui.QPushButton("2")
     b3=QtGui.QPushButton("3")
     b4=QtGui.QPushButton("4")
@@ -199,9 +199,27 @@ if __name__ == "__main__":
         
         open('savedfile.xx','w').write(unicode(w.toHtml()))
             
+    def bulletIn():
+        cursor=w.textCursor()
+        block=cursor.block()
+        # Is it a bullet already?
+        l=block.textList()
+        lformat=QtGui.QTextListFormat()
+        if l:
+            print "is a bullet"
+            lformat = list.format()
+            lformat.setIndent(lformat.indent() + 1)
+        else:
+            # Not a bullet, make it one
+            lformat.setStyle(QtGui.QTextListFormat.ListDisc)
+            cursor.insertList(lformat)
+            cursor.insertBlock(block)
+        w.setFocus()
+            
     process.clicked.connect(doProcess)
     w.cursorPositionChanged.connect(adjustStylesCombo)
     stylesCombo.activated.connect(changeStyle)
+    b1.clicked.connect(bulletIn)
     
     if len(sys.argv) >1:
         if sys.argv[1].endswith('.xx'):
