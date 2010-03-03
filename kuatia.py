@@ -85,9 +85,20 @@ class blockStyler(QtGui.QSyntaxHighlighter):
         self.setFormat(0, len(text), tf)
         self.lock=False
 
-    def updateBlockFormat(self, block, stName):
+    def updateBlockFormat(self, block, stName=None):
         '''given a block and a style name, updates
-        the block's style according to style[stName]'''
+        the block's style according to style[stName].
+        
+        if stName is None, use the block's stName 
+        and if that is not there, use 'normal'
+        '''
+        
+        if stName is None:
+            if block.userData() and block.userData().data:
+                stName=block.userData().data
+            else:
+                stName='normal'
+        
         cursor=QtGui.QTextCursor(self.document())
         cursor.setPosition(block.position())
         current=cursor.blockFormat()
@@ -153,7 +164,7 @@ if __name__ == "__main__":
     bbar=QtGui.QHBoxLayout()
     b1=QtGui.QPushButton("bullet >")
     b2=QtGui.QPushButton("number >")
-    b3=QtGui.QPushButton("3")
+    b3=QtGui.QPushButton("<")
     b4=QtGui.QPushButton("4")
     b5=QtGui.QPushButton("5")
     b6=QtGui.QPushButton("6")
@@ -235,12 +246,28 @@ if __name__ == "__main__":
             cursor.deletePreviousChar ()
         w.setFocus()
 
+    def listOut():
+        cursor=w.textCursor()
+        block=cursor.block()
+        # Is it a bullet already?
+        l=block.textList()
+        lformat=QtGui.QTextListFormat()
+        bformat=cursor.blockFormat()
+        if l:
+            l.remove(block)
+            cursor.setBlockFormat(QtGui.QTextBlockFormat())
+            bs.updateBlockFormat(block)
+            
+        else:
+            print "nothing to do"
+        w.setFocus()
 
     process.clicked.connect(doProcess)
     w.cursorPositionChanged.connect(adjustStylesCombo)
     stylesCombo.activated.connect(changeStyle)
     b1.clicked.connect(bulletIn)
     b2.clicked.connect(numberIn)
+    b3.clicked.connect(listOut)
     
     if len(sys.argv) >1:
         if sys.argv[1].endswith('.xx'):
