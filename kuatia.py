@@ -63,14 +63,16 @@ class blockStyler(QtGui.QSyntaxHighlighter):
             pb=block.previous()
             if pb.isValid():
                 # Get previous style
-                prevStyle=pb.userData().data
+                if pb and pb.userData():
+                    prevStyle=pb.userData().data
+                else:
+                    prevStyle='normal'
                 stName=styles[prevStyle]['nextStyle']
                 format=styles[stName]
                 block.setUserData(StyleData(stName))
         else:
             stName=st.data
             format=styles[stName]
-        print text,'=>', stName
 
         # Creat text format, again, should be pre-made
         tf=QtGui.QTextCharFormat()
@@ -207,14 +209,18 @@ if __name__ == "__main__":
         # Is it a bullet already?
         l=block.textList()
         lformat=QtGui.QTextListFormat()
+        bformat=cursor.blockFormat()
         if l:
             print "is a bullet"
-            lformat = l.format()
-            lformat.setIndent(lformat.indent() + 1)
-        lformat.setStyle(QtGui.QTextListFormat.ListDisc)
-        cursor.insertList(lformat)
+        else:
+            lformat.setStyle(QtGui.QTextListFormat.ListDisc)
+            l=cursor.insertList(lformat)
+            l.add(block)
+            cursor.deletePreviousChar ()
         w.setFocus()
-            
+
+
+
     process.clicked.connect(doProcess)
     w.cursorPositionChanged.connect(adjustStylesCombo)
     stylesCombo.activated.connect(changeStyle)
