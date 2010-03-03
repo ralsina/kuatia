@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     bbar=QtGui.QHBoxLayout()
     b1=QtGui.QPushButton("bullet >")
-    b2=QtGui.QPushButton("2")
+    b2=QtGui.QPushButton("number >")
     b3=QtGui.QPushButton("3")
     b4=QtGui.QPushButton("4")
     b5=QtGui.QPushButton("5")
@@ -219,12 +219,28 @@ if __name__ == "__main__":
             cursor.deletePreviousChar ()
         w.setFocus()
 
+    def numberIn():
+        cursor=w.textCursor()
+        block=cursor.block()
+        # Is it a bullet already?
+        l=block.textList()
+        lformat=QtGui.QTextListFormat()
+        bformat=cursor.blockFormat()
+        if l:
+            print "is a bullet"
+        else:
+            lformat.setStyle(QtGui.QTextListFormat.ListDecimal)
+            l=cursor.insertList(lformat)
+            l.add(block)
+            cursor.deletePreviousChar ()
+        w.setFocus()
 
 
     process.clicked.connect(doProcess)
     w.cursorPositionChanged.connect(adjustStylesCombo)
     stylesCombo.activated.connect(changeStyle)
     b1.clicked.connect(bulletIn)
+    b2.clicked.connect(numberIn)
     
     if len(sys.argv) >1:
         if sys.argv[1].endswith('.xx'):
