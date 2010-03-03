@@ -28,7 +28,7 @@ styles=OrderedDict([
         'font': 'Courier',
         'size': 10,
         'nextStyle': 'code',
-        }),    
+        }),
     ('normal', {
         'bold': False,
         'italic': False,
@@ -120,11 +120,23 @@ class FunDocument(QtGui.QTextDocument):
             text=unicode(bl.text())
             l=bl.textList()
             if l: # This is in a list
+            
+            
+                # This is for bullet lists
+                magicChars='* '
+                laterChars='* '
+                
+                if l.format().style()==QtGui.QTextListFormat.ListDecimal:
+                    magicChars='1.'
+                    laterChars='#.'
+                    
+                pos=l.itemNumber(bl)
+                if pos>0:
+                    magicChars=laterChars
+            
                 ind=5*l.format().indent()
-                print 'Indent level:',l.format().indent()
-                print '>%s<'%(' '*(ind-5)+'*    ')
                 text=self.indentText(text,ind)
-                text='\n'+(' '*(ind-5)+'*    '+(text[ind:]))
+                text='\n'+(' '*(ind-5)+magicChars+'   '+(text[ind:]))
                 print 'TEXT:>%s<'%text
             d=bl.userData()
             if d: 
@@ -222,7 +234,7 @@ if __name__ == "__main__":
         f.close()
         os.system('rst2pdf outfile')
         os.system('okular outfile.pdf')
-        
+            
         open('savedfile.xx','w').write(unicode(w.toHtml()))
 
     def listIn(kind):
