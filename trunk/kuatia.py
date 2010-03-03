@@ -45,11 +45,6 @@ alignments = {
     'right':QtCore.Qt.AlignRight
     }
 
-bfDict={}
-
-for format in styles:
-    bfDict[format]=QtGui.QTextBlockFormat()
-    bfDict[format].setAlignment(alignments[styles[format]['alignment']])
 
 
 class StyleData(QtGui.QTextBlockUserData):
@@ -84,12 +79,19 @@ class blockStyler(QtGui.QSyntaxHighlighter):
         tf.setFontItalic(format['italic'])
         tf.setFontWeight(format['bold'] and 75 or 50)
         
-        cursor=QtGui.QTextCursor(self.document())
-        cursor.setPosition(block.position())
-        cursor.setBlockFormat(bfDict[stName])
+        self.updateBlockFormat(block, stName)
         self.setFormat(0, len(text), tf)
         self.lock=False
 
+    def updateBlockFormat(self, block, stName):
+        '''given a block and a style name, updates
+        the block's style according to style[stName]'''
+        cursor=QtGui.QTextCursor(self.document())
+        cursor.setPosition(block.position())
+        current=cursor.blockFormat()
+        # FIXME this will be much more extensive ;-)
+        current.setAlignment(alignments[styles[stName]['alignment']])
+        cursor.setBlockFormat(current)
 
 class FunDocument(QtGui.QTextDocument):
     def toRst(self):
@@ -207,13 +209,10 @@ if __name__ == "__main__":
         lformat=QtGui.QTextListFormat()
         if l:
             print "is a bullet"
-            lformat = list.format()
+            lformat = l.format()
             lformat.setIndent(lformat.indent() + 1)
-        else:
-            # Not a bullet, make it one
-            lformat.setStyle(QtGui.QTextListFormat.ListDisc)
-            cursor.insertList(lformat)
-            cursor.insertBlock(block)
+        lformat.setStyle(QtGui.QTextListFormat.ListDisc)
+        cursor.insertList(lformat)
         w.setFocus()
             
     process.clicked.connect(doProcess)
