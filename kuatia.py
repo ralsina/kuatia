@@ -12,6 +12,8 @@ styles=OrderedDict([
         'font': 'White Rabbit',
         'size': 18,
         'nextStyle': 'normal',
+        'indent': 0,
+        'canNest': False,
         }),
     ('heading2', {
         'bold': True,
@@ -20,6 +22,8 @@ styles=OrderedDict([
         'font': 'Eurofurence',
         'size': 16,
         'nextStyle': 'normal',
+        'indent': 0,
+        'canNest': False,
         }),
     ('code', {
         'bold': False,
@@ -28,7 +32,19 @@ styles=OrderedDict([
         'font': 'Courier',
         'size': 10,
         'nextStyle': 'code',
+        'indent': 0,
+        'canNest': True,
         }),
+    ('quote', {
+        'bold': False,
+        'italic': True,
+        'alignment': 'left',
+        'font': 'Courier',
+        'size': 10,
+        'nextStyle': 'quote',
+        'indent': 1,
+        'canNest': True,
+        }),    
     ('normal', {
         'bold': False,
         'italic': False,
@@ -36,6 +52,8 @@ styles=OrderedDict([
         'font': 'Helvetica',
         'size': 10,
         'nextStyle': 'normal',
+        'indent': 0,
+        'canNest': True,
         })])
 
 
@@ -104,6 +122,7 @@ class blockStyler(QtGui.QSyntaxHighlighter):
         current=cursor.blockFormat()
         # FIXME this will be much more extensive ;-)
         current.setAlignment(alignments[styles[stName]['alignment']])
+        current.setIndent(styles[stName]['indent'])
         cursor.setBlockFormat(current)
 
 class FunDocument(QtGui.QTextDocument):
@@ -219,9 +238,10 @@ if __name__ == "__main__":
 
     def adjustStylesCombo():
         block=w.textCursor().block()
-        st=block.userState()
-        if st== -1: st=len(styles)-1
-        stylesCombo.setCurrentIndex(st)
+        d=block.userData()
+        if d: d=d.data
+        else: d='normal'
+        stylesCombo.setCurrentIndex(stylesCombo.findText(d))
         
     def doProcess():
         rst=w.document().toRst()
