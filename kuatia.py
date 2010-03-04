@@ -39,7 +39,7 @@ styles=OrderedDict([
         'bold': False,
         'italic': True,
         'alignment': 'left',
-        'font': 'Courier',
+        'font': 'Helvetica',
         'size': 10,
         'nextStyle': 'quote',
         'indent': 1,
@@ -157,12 +157,11 @@ class FunDocument(QtGui.QTextDocument):
                 text=self.indentText(text,ind)
                 text='\n'+(' '*(ind-5)+magicChars+'   '+(text[ind:]))
                 print 'TEXT:>%s<'%text
-            d=bl.userData()
-            if d: 
-                d=d.data
+            style=bl.userData()
+            if style: 
+                style=style.data
             else:
-                d='normal'
-            style=styles[d]
+                style='normal'
             if style=='heading1':
                 text=text.strip()
                 out.append('')
@@ -182,6 +181,12 @@ class FunDocument(QtGui.QTextDocument):
                     out.append('')
                 text='    '+text
                 out.append(text)
+            elif style=='quote':
+                print 'quote!'
+                text=self.indentText(text,4)
+                out.append('')
+                out.append(text)
+                out.append('')
             else:
                 if not l:
                     text=text.strip()
